@@ -41,3 +41,13 @@ example
 # generated native folders
 /ios
 /android
+
+# Visual Studio
+.vs/
+*.vsix
+
+# Node & Expo
+node_modules/
+.expo/
+dist/
+npm-debug.*
