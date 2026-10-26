@@ -1,14 +1,25 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
+import CustomHeader from '@/components/CustomHeader';
 
 export default function HomeScreen() {
     const handleFriendListPress = () => {
         console.log('Friend list button pressed!');
     };
 
+    // Temporary mock database array (dynamic and reactive)
+    const [users] = useState([
+        { id: '1', name: 'Maya', initials: 'MA', status: 'FREE', message: 'bored, anyone want boba?', statusColor: '#4ade80' },
+        { id: '2', name: 'Jordan', initials: 'JD', status: 'BUSY', message: 'studying for chem', statusColor: '#f87171' },
+        { id: '3', name: 'Ava', initials: 'AV', status: 'FREE', message: 'leg day lol', statusColor: '#4ade80' },
+        { id: '4', name: 'Leo', initials: 'LE', status: 'AWAY', message: 'shift til 9', statusColor: '#facc15' },
+        { id: '5', name: 'Sam', initials: 'SM', status: 'BUSY', message: 'in class', statusColor: '#f87171' },
+        { id: '6', name: 'Riley', initials: 'RI', status: 'OFFLINE', message: 'sleeping zzz', statusColor: '#9ca3af' },
+    ]);
 
     return (
     <View style={styles.container}>
@@ -16,23 +27,37 @@ export default function HomeScreen() {
         <SafeAreaView style={styles.safeArea} edges={[]}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 
-                <View style={styles.headerRow}>
-                    
-                    {/*Header Left Side*/}
-                    <View style={styles.headerTextBlock}>
-                        <ThemedText style={styles.wydLabel}>WYD?</ThemedText>
-                        <ThemedText type="title" style={styles.mainTitle}>Status</ThemedText>
-                    </View>
+                <CustomHeader title="Status" subtitle={`${users.length} people`} onAddPress={handleFriendListPress} />
 
-                    {/*Header Right Side*/}
-                    <TouchableOpacity
-                        style={styles.addButton}
-                        onPress={handleFriendListPress}
-                        activeOpacity={0.7}
-                    >
-                        <ThemedText style={styles.addIcon}>+</ThemedText>
-                    
-                    </TouchableOpacity>
+                {/* 2-Column User Grid */}
+                <View style={styles.gridContainer}>
+                    {users.map((user, index) => {
+                        const isLeftColumn = index % 2 === 0;
+                        const isLastRow = index >= users.length - (users.length % 2 === 0 ? 2 : 1);
+
+                        return (
+                            <View
+                                key={user.id}
+                                style={[
+                                    styles.userCard,
+                                    isLeftColumn && styles.cardLeftBorder,
+                                    !isLastRow && styles.cardBottomBorder,
+                                ]}
+                            >
+                                {/* User Initials Avatar Circle */}
+                                <View style={[styles.avatarCircle, { borderColor: user.statusColor }]}>
+                                    <ThemedText style={styles.avatarText}>{user.initials}</ThemedText>
+                                </View>
+
+                                {/* User Info */}
+                                <ThemedText style={styles.userName}>{user.name}</ThemedText>
+                                <ThemedText style={[styles.userStatus, { color: user.statusColor }]}>
+                                    {user.status}
+                                </ThemedText>
+                                <ThemedText style={styles.userMessage}>"{user.message}"</ThemedText>
+                            </View>
+                        );
+                    })}
                 </View>
 
             </ScrollView>
@@ -50,45 +75,62 @@ const styles = StyleSheet.create({
       flex: 1,
   },
   scrollContent: {
-      paddingHorizontal: 40,
+      paddingHorizontal: 15,
       paddingBottom: 20,
   },
-  headerRow: {
+  // Grid and User Card Styles
+  gridContainer: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginTop: 20,
-      marginBottom: 20,
+      flexWrap: 'wrap',
+      paddingHorizontal: 10,
   },
-  headerTextBlock: {
-      marginTop: 10,
-      marginBottom: 20,
+  userCard: {
+      width: '50%',
+      paddingVertical: 20,
+      paddingHorizontal: 16,
   },
-  wydLabel: {
-      fontSize: 20,
-      color: '#888888',
-      letterSpacing: 1,
-      marginBottom: 2,
+  cardLeftBorder: {
+      borderRightWidth: 1,
+      borderRightColor: '#333333',
+      borderStyle: 'solid',
   },
-  mainTitle: {
-      color: '#FFFFFF',
-      fontSize: 36,
-      fontWeight: 'bold',
+  cardBottomBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: '#333333',
+      borderStyle: 'solid',
   },
-  addButton: {
-      marginTop: 15,
+  avatarCircle: {
       width: 50,
       height: 50,
-      borderRadius: 10,
-      borderWidth: 2,
-      borderColor: '#333333',
-      backgroundColor: '#1a1a1a',
+      borderRadius: 25,
+      borderWidth: 1.5,
       justifyContent: 'center',
       alignItems: 'center',
+      marginBottom: 12,
   },
-  addIcon: {
-      color: '#FFFFFF',
-      fontSize: 25,
-      fontWeight: '300',
+  avatarText: {
+      fontFamily: 'monospace',
+      fontWeight: 'bold',
+      color: '#ffffff',
+      fontSize: 16,
+  },
+  userName: {
+      color: '#ffffff',
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 2,
+  },
+  userStatus: {
+      fontFamily: 'monospace',
+      fontSize: 12,
+      fontWeight: 'bold',
+      marginBottom: 6,
+      marginLeft: 1,
+      letterSpacing: 1,
+  },
+  userMessage: {
+      color: '#aaaaaa',
+      fontSize: 14,
+      fontStyle: 'italic',
   },
 });
