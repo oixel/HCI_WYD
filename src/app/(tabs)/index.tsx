@@ -25,7 +25,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
         <StatusBar style="light" backgroundColor="#121212" />
         <SafeAreaView style={styles.safeArea} edges={[]}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView contentContainerStyle={styles.scrollContent} stickyHeaderIndices={[0]}>
                 
                 <CustomHeader title="Status" subtitle={`${users.length} people`} onAddPress={handleFriendListPress} />
 

@@ -23,7 +23,8 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={[]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} stickyHeaderIndices={[0]}>
+
           <CustomHeader title="Profile" subtitle="Your Public Status" showAddButton={false} />
           
           {/* User Profile Info Section */}

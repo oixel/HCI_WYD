@@ -50,6 +50,7 @@ export default function CustomHeader({
 
 const styles = StyleSheet.create({
   headerContainer: {
+      backgroundColor: '#121212',
       paddingBottom: 0,
   },
   headerRow: {

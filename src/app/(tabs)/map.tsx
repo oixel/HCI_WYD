@@ -8,7 +8,8 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={[]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} stickyHeaderIndices={[0]}>
+
           <CustomHeader title="Map" subtitle="Gainesville, FL" showAddButton={false} />
           
           {/* Map content will go here */}
