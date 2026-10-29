@@ -1,47 +1,92 @@
-import { StyleSheet, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useEffect, useState } from "react";
+import {
+  Button,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import CustomHeader from '@/components/CustomHeader';
-import { ThemedText } from '@/components/themed-text';
+import CustomHeader from "@/components/CustomHeader";
+import { ThemedText } from "@/components/themed-text";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 export default function ProfileScreen() {
-    const [statusMessage, setStatusMessage] = useState('');
-    const [selectedStatus, setSelectedStatus] = useState('FREE');
+  const { profile, session, refreshProfile } = useAuth();
+  const [statusMessage, setStatusMessage] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("FREE");
 
-    const handleChangePhotoPress = () => {
-        console.log('Change photo pressed!');
-    };
+  useEffect(() => {
+    if (profile) {
+      setSelectedStatus(profile.availability);
+      setStatusMessage(profile.status_message);
+    }
+  }, [profile]);
 
-    const statuses = [
-      { id: 'FREE', label: 'Free', color: '#4ade80' },
-      { id: 'BUSY', label: 'Busy', color: '#f87171' },
-      { id: 'AWAY', label: 'Away', color: '#facc15' },
-      { id: 'OFFLINE', label: 'Offline', color: '#9ca3af' },
-    ];
+  async function saveProfile(fields: {
+    availability?: string;
+    status_message?: string;
+  }) {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ ...fields, updated_at: new Date().toISOString() })
+      .eq("id", session!.user.id);
+
+    if (error) console.warn(error.message);
+    else refreshProfile();
+  }
+
+  const handleChangePhotoPress = () => {
+    console.log("Change photo pressed!");
+  };
+
+  const statuses = [
+    { id: "Free", label: "Free", color: "#4ade80" },
+    { id: "Busy", label: "Busy", color: "#f87171" },
+    { id: "Away", label: "Away", color: "#facc15" },
+    { id: "Offline", label: "Offline", color: "#9ca3af" },
+  ];
+
+  const current =
+    statuses.find((status) => status.id === selectedStatus) ?? statuses[3];
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={[]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} stickyHeaderIndices={[0]}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          stickyHeaderIndices={[0]}
+        >
+          <CustomHeader
+            title="Profile"
+            subtitle="Your Public Status"
+            showAddButton={false}
+          />
 
-          <CustomHeader title="Profile" subtitle="Your Public Status" showAddButton={false} />
-          
           {/* User Profile Info Section */}
           <View style={styles.profileSection}>
             {/* Circle Avatar with Initials */}
-            <View style={styles.avatarCircle}>
-              <ThemedText style={styles.avatarText}>VH</ThemedText>
+            <View style={[styles.avatarCircle, { borderColor: current.color }]}>
+              <ThemedText style={styles.avatarText}>
+                {profile?.username?.substring(0, 2).toUpperCase()}
+              </ThemedText>
             </View>
 
             {/* User Name & Change Photo Link */}
             <View style={styles.profileDetails}>
-              <ThemedText style={styles.userName}>Vincent</ThemedText>
-              <TouchableOpacity 
-                onPress={handleChangePhotoPress} 
+              <ThemedText style={styles.userName}>
+                {profile?.username}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={handleChangePhotoPress}
                 activeOpacity={0.7}
               >
-                <ThemedText style={styles.changePhotoText}>Change photo</ThemedText>
+                <ThemedText style={styles.changePhotoText}>
+                  Change photo
+                </ThemedText>
               </TouchableOpacity>
             </View>
           </View>
@@ -56,7 +101,9 @@ export default function ProfileScreen() {
           {/* My Status Section Header */}
           <View style={styles.sectionHeaderRow}>
             <ThemedText style={styles.sectionTitle}>My status</ThemedText>
-            <ThemedText style={styles.visibilityText}>Visible to friends</ThemedText>
+            <ThemedText style={styles.visibilityText}>
+              Visible to friends
+            </ThemedText>
           </View>
 
           {/* Status Selector Buttons Grid */}
@@ -70,11 +117,21 @@ export default function ProfileScreen() {
                     styles.statusButton,
                     isSelected && styles.statusButtonSelected,
                   ]}
-                  onPress={() => setSelectedStatus(item.id)}
+                  onPress={() => {
+                    setSelectedStatus(item.id);
+                    saveProfile({ availability: item.id });
+                  }}
                   activeOpacity={0.7}
                 >
-                  <View style={[styles.statusDot, { backgroundColor: item.color }]} />
-                  <ThemedText style={[styles.statusButtonText, isSelected && styles.statusTextSelected]}>
+                  <View
+                    style={[styles.statusDot, { backgroundColor: item.color }]}
+                  />
+                  <ThemedText
+                    style={[
+                      styles.statusButtonText,
+                      isSelected && styles.statusTextSelected,
+                    ]}
+                  >
                     {item.label}
                   </ThemedText>
                 </TouchableOpacity>
@@ -82,7 +139,9 @@ export default function ProfileScreen() {
             })}
           </View>
 
-          <ThemedText style={styles.messageTitle}>Your Message To Friends</ThemedText>
+          <ThemedText style={styles.messageTitle}>
+            Your Message To Friends
+          </ThemedText>
           {/* Custom Message Input Section */}
           <View style={styles.messageInputContainer}>
             <TextInput
@@ -91,9 +150,14 @@ export default function ProfileScreen() {
               onChangeText={setStatusMessage}
               placeholder="What's on your mind?"
               placeholderTextColor="#666666"
+              onEndEditing={() =>
+                saveProfile({ status_message: statusMessage })
+              }
+              returnKeyType="done"
             />
           </View>
 
+          <Button title="Sign out" onPress={() => supabase.auth.signOut()} />
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -101,22 +165,22 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#121212', 
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
   },
-  safeArea: { 
-    flex: 1, 
+  safeArea: {
+    flex: 1,
   },
-  scrollContent: { 
-    paddingHorizontal: 15, 
-    paddingBottom: 20, 
+  scrollContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 20,
   },
 
   // Profile Section Layout
   profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 15,
     paddingHorizontal: 10,
   },
@@ -125,90 +189,90 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: '#4ade80',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#4ade80",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 20,
   },
   avatarText: {
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    color: "#FFFFFF",
     fontSize: 24,
   },
   profileDetails: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   userName: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 6,
     lineHeight: 38,
     includeFontPadding: false,
   },
   changePhotoText: {
-    fontFamily: 'monospace',
-    color: '#888888',
+    fontFamily: "monospace",
+    color: "#888888",
     fontSize: 14,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
 
   // Dotted line below profile section
   dottedLineContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginVertical: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     height: 2,
   },
   dot: {
     width: 2,
     height: 2,
-    backgroundColor: '#aaaaaa',
+    backgroundColor: "#aaaaaa",
     marginHorizontal: 1,
   },
 
   // Section Headers
   sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
     paddingHorizontal: 10,
     marginTop: 10,
     marginBottom: 12,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   visibilityText: {
-    color: '#666666',
+    color: "#666666",
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
 
   // Status Selector Buttons
   statusGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 10,
     marginBottom: 12,
   },
   statusButton: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: "#333333",
     borderRadius: 8,
     paddingVertical: 14,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 4,
   },
   statusButtonSelected: {
-    borderColor: '#FFFFFF',
+    borderColor: "#FFFFFF",
     borderWidth: 1.5,
   },
   statusDot: {
@@ -218,37 +282,37 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   statusButtonText: {
-    color: '#888888',
+    color: "#888888",
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
   statusTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
 
   // Custom Message Box Styles
   messageTitle: {
-      marginLeft: 10,
-      fontSize: 20,
-      fontFamily: 'monospace',
-      fontWeight: 'bold',
+    marginLeft: 10,
+    fontSize: 20,
+    fontFamily: "monospace",
+    fontWeight: "bold",
   },
   messageInputContainer: {
     marginHorizontal: 10,
     marginTop: 8,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#444444',
-    borderStyle: 'dashed', 
+    borderColor: "#444444",
+    borderStyle: "dashed",
     borderRadius: 8,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   textInput: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
   },
 });
