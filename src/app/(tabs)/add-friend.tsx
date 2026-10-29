@@ -10,7 +10,6 @@ import { supabase } from '@/lib/supabase';
 interface Profile {
     id: string;
     username: string;
-    display_name: string;
 }
 
 interface FriendRequest {
@@ -39,7 +38,7 @@ export default function AddFriendScreen() {
     const loadRequests = async (userId: string) => {
         const { data, error } = await supabase
             .from('friendships')
-            .select('id, sender:profiles!user_id(id, username, display_name)')
+            .select('id, sender:profiles!user_id(id, username)')
             .eq('friend_id', userId)
             .eq('status', 'pending');
 
@@ -54,20 +53,36 @@ export default function AddFriendScreen() {
         setFoundUser(null);
         setMessage('');
 
+        // ilike ignores capitalization; escape % and _ so they match as normal characters
+        const username = searchText.trim();
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, username, display_name')
-            .eq('username', searchText.trim().toLowerCase())
-            .maybeSingle();
+            .select('id, username')
+            .ilike('username', username.replace(/[%_\\]/g, (ch) => `\\${ch}`))
+            .limit(2);
 
         if (error) {
             setMessage(error.message);
-        } else if (!data) {
+            return;
+        }
+
+        let match: Profile | undefined;
+        if (data.length === 1) {
+            match = data[0];
+        } else if (data.length === 2) {
+            match = data.find((profile) => profile.username === username);
+            if (!match) {
+                setMessage('More than one user has that name. Type the exact capitalization.');
+                return;
+            }
+        }
+
+        if (!match) {
             setMessage('No user with that username.');
-        } else if (data.id === myId) {
+        } else if (match.id === myId) {
             setMessage("That's you!");
         } else {
-            setFoundUser(data);
+            setFoundUser(match);
         }
     };
 
@@ -82,7 +97,7 @@ export default function AddFriendScreen() {
             setMessage(error.message);
             return;
         }
-        setMessage(`Friend request sent to ${foundUser.display_name}!`);
+        setMessage(`Friend request sent to @${foundUser.username}!`);
         setFoundUser(null);
         setSearchText('');
     };
@@ -136,8 +151,7 @@ export default function AddFriendScreen() {
               {foundUser && (
                 <View style={styles.userRow}>
                   <View>
-                    <ThemedText style={styles.userName}>{foundUser.display_name}</ThemedText>
-                    <ThemedText style={styles.usernameText}>@{foundUser.username}</ThemedText>
+                    <ThemedText style={styles.userName}>@{foundUser.username}</ThemedText>
                   </View>
                   <TouchableOpacity style={styles.button} onPress={handleAddPress} activeOpacity={0.7}>
                     <ThemedText style={styles.buttonText}>Add</ThemedText>
@@ -158,8 +172,7 @@ export default function AddFriendScreen() {
                 requests.map((request) => (
                   <View key={request.id} style={styles.userRow}>
                     <View>
-                      <ThemedText style={styles.userName}>{request.sender.display_name}</ThemedText>
-                      <ThemedText style={styles.usernameText}>@{request.sender.username}</ThemedText>
+                      <ThemedText style={styles.userName}>@{request.sender.username}</ThemedText>
                     </View>
                     <TouchableOpacity
                       style={styles.acceptButton}
@@ -285,10 +298,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  usernameText: {
-    color: '#888888',
-    fontSize: 14,
-    fontFamily: 'monospace',
   },
 });
