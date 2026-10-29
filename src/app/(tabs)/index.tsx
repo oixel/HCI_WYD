@@ -1,14 +1,15 @@
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
 import CustomHeader from '@/components/CustomHeader';
+import { ThemedText } from '@/components/themed-text';
 
 export default function HomeScreen() {
     const handleFriendListPress = () => {
-        console.log('Friend list button pressed!');
+        router.push('/add-friend');
     };
 
     // Temporary mock database array (dynamic and reactive)
