@@ -76,8 +76,10 @@ export default function HomeScreen() {
           <View style={styles.gridContainer}>
             {sortedFriends.map((user, index) => {
               const isLeftColumn = index % 2 === 0;
+              const hasRightNeighbor = index + 1 < sortedFriends.length;
               const isLastRow =
-                index >= friends.length - (friends.length % 2 === 0 ? 2 : 1);
+                index >=
+                sortedFriends.length - (sortedFriends.length % 2 === 0 ? 2 : 1);
               const color = statusColor(user.availability);
               const name = user.username ?? "?";
 
@@ -86,7 +88,7 @@ export default function HomeScreen() {
                   key={user.id}
                   style={[
                     styles.userCard,
-                    isLeftColumn && styles.cardLeftBorder,
+                    isLeftColumn && hasRightNeighbor && styles.cardLeftBorder,
                     !isLastRow && styles.cardBottomBorder,
                   ]}
                 >
