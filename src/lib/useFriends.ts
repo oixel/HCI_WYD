@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 export type Friend = {
   id: string;
   username: string | null;
+  phone: string | null;
   availability: string;
   status_message: string;
 };
@@ -45,7 +46,7 @@ export function useFriends() {
 
     const { data: profiles, error: profileError } = await supabase
       .from("profiles")
-      .select("id, username, availability, status_message")
+      .select("id, username, phone, availability, status_message")
       .in("id", ids);
 
     if (profileError) console.warn(profileError.message);
