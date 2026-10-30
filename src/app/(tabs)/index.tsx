@@ -1,11 +1,12 @@
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomHeader from "@/components/CustomHeader";
 import { ThemedText } from "@/components/themed-text";
 import { useFriends } from "@/lib/useFriends";
+import { useMemo, useState } from "react";
 
 export const STATUS_COLORS: Record<string, string> = {
   Free: "#4ade80",
@@ -14,14 +15,38 @@ export const STATUS_COLORS: Record<string, string> = {
   Offline: "#9ca3af",
 };
 
+const ORDER = ["Free", "Busy", "Away", "Offline"];
+
+const order = (availability?: string | null) => {
+  const i = ORDER.indexOf(availability ?? "Offline");
+  return i === -1 ? ORDER.length : i;
+};
+
 export const statusColor = (availability?: string | null) =>
   STATUS_COLORS[availability ?? "Offline"] ?? STATUS_COLORS.Offline;
 
 export default function HomeScreen() {
-  const { friends, loading } = useFriends();
+  const { friends, reload } = useFriends();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const sortedFriends = useMemo(
+    () =>
+      [...friends].sort(
+        (a, b) =>
+          order(a.availability) - order(b.availability) ||
+          (a.username ?? "").localeCompare(b.username ?? ""),
+      ),
+    [friends],
+  );
 
   const handleFriendListPress = () => {
     router.push("/add-friend");
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await reload();
+    setRefreshing(false);
   };
 
   return (
@@ -31,6 +56,15 @@ export default function HomeScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           stickyHeaderIndices={[0]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#ffffff"
+              colors={["#ffffff"]}
+              progressBackgroundColor="#1a1a1a"
+            />
+          }
         >
           <CustomHeader
             title="Status"
@@ -40,7 +74,7 @@ export default function HomeScreen() {
 
           {/* 2-Column User Grid */}
           <View style={styles.gridContainer}>
-            {friends.map((user, index) => {
+            {sortedFriends.map((user, index) => {
               const isLeftColumn = index % 2 === 0;
               const isLastRow =
                 index >= friends.length - (friends.length % 2 === 0 ? 2 : 1);
