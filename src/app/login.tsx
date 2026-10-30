@@ -43,9 +43,6 @@ export default function Login() {
     setLoading(true);
     const phone = `+1${digits}`;
 
-    console.log(phone);
-    console.log("+12222222222");
-
     const { error } = await supabase.auth.signInWithOtp({ phone });
     setLoading(false);
     if (error) {
