@@ -1,4 +1,4 @@
-# WYD
+# WYD?
 
 WYD is a cross-platform mobile application for tracking social availability.
 
