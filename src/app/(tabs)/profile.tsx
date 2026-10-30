@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Button,
+  Alert,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -157,7 +157,24 @@ export default function ProfileScreen() {
             />
           </View>
 
-          <Button title="Sign out" onPress={() => supabase.auth.signOut()} />
+          <View style={styles.signOutContainer}>
+            <TouchableOpacity
+              style={styles.signOutButton}
+              onPress={() =>
+                Alert.alert("Sign out", "Are you sure?", [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Sign out",
+                    style: "destructive",
+                    onPress: () => supabase.auth.signOut(),
+                  },
+                ])
+              }
+              activeOpacity={0.7}
+            >
+              <ThemedText style={styles.signOutText}>Sign out</ThemedText>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -173,6 +190,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 15,
     paddingBottom: 20,
   },
@@ -314,5 +332,26 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontFamily: "monospace",
+  },
+
+  // Sign out button
+  signOutContainer: {
+    marginTop: "auto", // pushes the button to the bottom when there's spare space
+    paddingTop: 24, // keeps a gap when the content is already tall
+    paddingHorizontal: 10,
+  },
+  signOutButton: {
+    backgroundColor: "#1a1a1a",
+    borderWidth: 1.5,
+    borderColor: "#f87171",
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  signOutText: {
+    color: "#f87171",
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    fontSize: 14,
   },
 });
