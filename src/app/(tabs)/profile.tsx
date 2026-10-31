@@ -39,10 +39,6 @@ export default function ProfileScreen() {
     else refreshProfile();
   }
 
-  const handleChangePhotoPress = () => {
-    console.log("Change photo pressed!");
-  };
-
   const statuses = [
     { id: "Free", label: "Free", color: "#4ade80" },
     { id: "Busy", label: "Busy", color: "#f87171" },
@@ -80,14 +76,6 @@ export default function ProfileScreen() {
               <ThemedText style={styles.userName}>
                 {profile?.username}
               </ThemedText>
-              <TouchableOpacity
-                onPress={handleChangePhotoPress}
-                activeOpacity={0.7}
-              >
-                <ThemedText style={styles.changePhotoText}>
-                  Change photo
-                </ThemedText>
-              </TouchableOpacity>
             </View>
           </View>
 
