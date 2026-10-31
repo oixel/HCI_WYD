@@ -341,7 +341,7 @@ export default function MapScreen() {
             onPress={openAddModalAtCurrent}
             style={styles.addButton}
           >
-            <Text style={styles.addButtonText}>+ Current Loc</Text>
+            <Text style={styles.addButtonText}>+ Current Location</Text>
           </TouchableOpacity>
         </View>
 
